@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>StyledText Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./base.css">
+    <link rel="stylesheet" href="./tabs.css">
+    <link rel="stylesheet" href="./editor.css">
+    <link rel="stylesheet" href="./ai.css">
+</head>
+
+<body>
+    <div class="main-container">
+        <!-- 좌측: StyledText 에디터 -->
+        <div class="left-panel">
+            <!-- 탭 영역 추가 -->
+            <div class="tab-bar" id="tab-bar">
+                <div class="tabs-list" id="tabs-list">
+                    <!-- JavaScript에서 탭 렌더링 -->
+                </div>
+                <button class="add-tab-btn" onclick="addNewTab()" title="새 탭 추가">+</button>
+                <div class="window-controls">
+                    <button class="win-btn min-btn" onclick="window.apiMinimize()" title="최소화">
+                        <svg width="10" height="1" viewBox="0 0 10 1"><line x1="0" y1="0.5" x2="10" y2="0.5" stroke="currentColor" stroke-width="1"/></svg>
+                    </button>
+                    <button class="win-btn max-btn" onclick="window.apiMaximize()" title="최대화">
+                        <svg width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+                    </button>
+                    <button class="win-btn close-btn" onclick="window.apiClose()" title="닫기">
+                        <svg width="10" height="10" viewBox="0 0 10 10"><path d="M 1,1 L 9,9 M 9,1 L 1,9" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="editor-header">
+                <div class="editor-menu" style="margin-right: auto; margin-left: 0; width: 100%; display: flex; align-items: center; justify-content: space-between;">
+                    <!-- 파일 메뉴 통합 드롭다운 -->
+                    <div class="dropdown" id="file-menu-dropdown">
+                        <button class="menu-btn dropdown-toggle-btn" id="file-menu-btn">파일</button>
+                        <div class="dropdown-content" id="file-menu-dropdown-content" style="min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                            <a href="#" onclick="triggerNewFile(); return false;">새 파일</a>
+                            <a href="#" onclick="triggerLoadFile(); return false;">불러오기</a>
+                            <a href="#" onclick="triggerSaveFile(); return false;">저장</a>
+                        </div>
+                    </div>
+                    <!-- 우측 끝 현재 활성 모델 선택용 드롭다운 박스 및 설정 버튼 -->
+                    <div id="ai-model-status-display" style="display: flex; align-items: center; gap: 6px;">
+                        <select id="model-select" class="model-dropdown" style="width: 180px; height: 28px; font-size: 12px; border-radius: 4px; border: 1px solid #ccc; padding-left: 4px; font-family: inherit;">
+                            <option value="">⚠️ 모델 미설정</option>
+                        </select>
+                        <button id="header-model-setup-btn" style="height: 28px; width: 28px; display: flex; align-items: center; justify-content: center; padding: 0; background-color: #ffffff; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; cursor: pointer; color: #333;" title="API와 모델 설정 열기">⚙️</button>
+                    </div>
+                </div>
+            </div>
+            <div class="split-container">
+                <div class="top-panel" style="position: relative; display: flex; flex-direction: column;">
+                    <textarea id="editor" placeholder="Ctrl+. 을 누르면 AI가 글쓰기를 도와줍니다.
+Ctrl+L 을 누르면 AI가 영어로 번역하면서, 추천글을 보입니다." spellcheck="false" autofocus style="flex: 1;"></textarea>
+                    <!-- 편집창 제일 아래이자 영어 번역 창 맨 윗줄에 배치하는 추천 문구 바 -->
+                    <div id="suggestion-bar" style="display: none; padding: 6px 12px; background-color: #f1f3f5; border-top: 1px solid #dee2e6; display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-family: inherit;">
+                        <span id="ghost-suggested-text" style="color: #495057; font-weight: bold;"></span>
+                        <span id="ghost-suggested-badge" style="color: #ffffff; background-color: #28a745; font-size: 11px; font-weight: bold; border-radius: 4px; padding: 2px 6px; font-family: system-ui, sans-serif;">1/3</span>
+                    </div>
+                </div>
+                <div class="bottom-panel-res">
+                    <div class="bottom-content" style="padding: 10px 12px; display: flex; height: 100%; box-sizing: border-box;">
+                        <!-- 영어 번역 결과 (단독 100% 레이아웃) -->
+                        <textarea id="bottom-translation" readonly placeholder="텍스트 선택 후 Ctrl+L: 영어 번역 결과가 표시됩니다."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 선택 텍스트 AI 대화 팝업창 -->
+    <div id="ai-chat-modal" class="modal">
+        <div class="modal-content"
+            style="width: 96%; max-width: 96%; display: flex; flex-direction: column; height: 98vh; max-height: 98vh;">
+            <div class="modal-header"
+                style="background-color: #2c3e50; color: white; padding: 4px 16px; border-bottom: none;">
+                <h2 id="ai-chat-modal-title" style="color: white; margin: 0; font-size: 14px;">AI와의 대화</h2>
+                <span class="modal-close" onclick="closeAiChatModal()" style="color: white; font-size: 16px;">&times;</span>
+            </div>
+            <div class="modal-body"
+                style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 12px; background-color: #f8f9fa;">
+                <div style="font-size: 11px; color: #7f8c8d; font-weight: bold; margin-bottom: -4px;">선택된 텍스트</div>
+                <textarea id="ai-chat-selected-text" readonly
+                    style="width: 100%; height: 64px; min-height: 48px; padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; resize: none; font-family: inherit; font-size: 13px; background-color: #f1f3f5; color: #495057; outline: none; box-sizing: border-box; line-height: 1.4;"></textarea>
+
+                <div style="font-size: 11px; color: #7f8c8d; font-weight: bold; margin-bottom: -4px;">인공지능에게 위의 선택된 글에 대해 무엇을 하라고 명령하시겠습니까?</div>
+                <textarea id="ai-chat-prompt" rows="2" placeholder="지시사항을 입력하고 Enter를 누르십시오 (Shift+Enter로 줄바꿈)"
+                    style="width: 100%; min-height: 52px; height: 52px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; box-sizing: border-box; outline: none; line-height: 1.3;"></textarea>
+ 
+                <div class="ai-quick-actions" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button class="quick-btn quick-prompt-btn" style="background-color: #dcedc8; color: #33691e;"
+                        data-prompt="뜻" title="뜻 (Ctrl+1)">1 뜻</button>
+                    <button class="quick-btn quick-prompt-btn" style="background-color: #dcedc8; color: #33691e;"
+                        data-prompt="요약" title="요약 (Ctrl+2)">2 요약</button>
+                    <button class="quick-btn quick-prompt-btn" style="background-color: #f5f5f5; color: #212529;"
+                        data-prompt="영어로" title="영어로 (Ctrl+3)">3 영어로</button>
+                    <button class="quick-btn quick-prompt-btn" style="background-color: #f5f5f5; color: #212529;"
+                        data-prompt="한글로" title="한글로 (Ctrl+4)">4 한글로</button>
+                    <button class="quick-btn quick-prompt-btn" style="background-color: #212529; color: white;"
+                        data-prompt="개념확장" title="개념확장 (Ctrl+5)">5 개념확장</button>
+                    <button class="quick-btn quick-prompt-btn" style="background-color: #212529; color: white;"
+                        data-prompt="개념설명" title="개념설명 (Ctrl+6)">6 개념설명</button>
+                    <button class="quick-btn quick-prompt-btn" style="background-color: #e1bee7; color: #4a148c;"
+                        data-prompt="전개예측" title="전개예측 (Ctrl+7)">7 전개예측</button>
+                </div>
+ 
+                <div style="font-size: 11px; color: #7f8c8d; font-weight: bold; margin-bottom: -4px;">인공지능의 답변 (실행버튼은 Ctrl과 해당번호를 누르세요.)</div>
+                <textarea id="ai-chat-modal-content" readonly
+                    style="flex: 1; min-height: 200px; background-color: white; border: 1px solid #ddd; border-radius: 6px; padding: 12px; resize: none; font-family: inherit; font-size: 14px; outline: none; box-sizing: border-box; overflow-y: auto; line-height: 1.6; color: #212529;"></textarea>
+            </div>
+            <div class="modal-footer"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: #ffffff; border-top: 1px solid #ddd;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button id="ai-chat-model-setup-btn" class="menu-btn"
+                        style="height: 32px; width: 32px; display: flex; align-items: center; justify-content: center; padding: 0; background-color: #ffffff; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; cursor: pointer; color: #333;" title="모델 관리">⚙️</button>
+                    <select id="ai-chat-model-select" class="model-dropdown"
+                        style="width: 180px; height: 32px; font-size: 13px; border-radius: 4px; border: 1px solid #ccc; padding-left: 8px;">
+                        <option value="">⚠️ 모델 미설정</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="menu-btn"
+                        style="height: 32px; background-color: #1976d2; color: white; border: none; border-radius: 4px; padding: 0 16px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+                        onclick="insertAiChatToEditor()" title="본문에 삽입 (Ctrl+Enter)">📥 본문에 삽입 (Ctrl+Enter)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API 키 및 모델 설정 모달창 -->
+    <div id="api-key-modal" class="modal">
+        <div class="modal-content" style="width: 520px; max-width: 95%;">
+            <div class="modal-header">
+                <h2>API 키 및 모델 설정</h2>
+                <span id="api-key-close" class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto; gap: 16px;">
+                <!-- Google API Section -->
+                <div class="api-provider-section">
+                    <div class="api-section-title">Google API</div>
+                    <div class="input-group">
+                        <label for="google-api-key">API Key</label>
+                        <input type="password" id="google-api-key" placeholder="Google API Key 입력">
+                    </div>
+                    <div class="model-pair-row">
+                        <div class="input-group">
+                            <label for="google-model1-name">Model 1 Name</label>
+                            <input type="text" id="google-model1-name" placeholder="예: gemini-2.5-flash">
+                        </div>
+                        <div class="input-group">
+                            <label for="google-model1-alias">Model 1 Alias</label>
+                            <input type="text" id="google-model1-alias" placeholder="예: Gemini 2.5 Flash">
+                        </div>
+                    </div>
+                    <div class="model-pair-row">
+                        <div class="input-group">
+                            <label for="google-model2-name">Model 2 Name</label>
+                            <input type="text" id="google-model2-name" placeholder="예: gemini-2.5-pro">
+                        </div>
+                        <div class="input-group">
+                            <label for="google-model2-alias">Model 2 Alias</label>
+                            <input type="text" id="google-model2-alias" placeholder="예: Gemini 2.5 Pro">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Groq API Section -->
+                <div class="api-provider-section">
+                    <div class="api-section-title">Groq API</div>
+                    <div class="input-group">
+                        <label for="groq-api-key">API Key</label>
+                        <input type="password" id="groq-api-key" placeholder="Groq API Key 입력">
+                    </div>
+                    <div class="model-pair-row">
+                        <div class="input-group">
+                            <label for="groq-model1-name">Model 1 Name</label>
+                            <input type="text" id="groq-model1-name" placeholder="예: llama-3.3-70b-versatile">
+                        </div>
+                        <div class="input-group">
+                            <label for="groq-model1-alias">Model 1 Alias</label>
+                            <input type="text" id="groq-model1-alias" placeholder="예: Llama 3.3 70B">
+                        </div>
+                    </div>
+                    <div class="model-pair-row">
+                        <div class="input-group">
+                            <label for="groq-model2-name">Model 2 Name</label>
+                            <input type="text" id="groq-model2-name" placeholder="예: deepseek-r1-distill-llama-70b">
+                        </div>
+                        <div class="input-group">
+                            <label for="groq-model2-alias">Model 2 Alias</label>
+                            <input type="text" id="groq-model2-alias" placeholder="예: DeepSeek R1 70B">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ollama API Section -->
+                <div class="api-provider-section">
+                    <div class="api-section-title">Ollama API</div>
+                    <div class="input-group">
+                        <label for="ollama-api-key">Endpoint URL</label>
+                        <input type="text" id="ollama-api-key" placeholder="http://localhost:11434">
+                    </div>
+                    <div class="model-pair-row">
+                        <div class="input-group">
+                            <label for="ollama-model1-name">Model 1 Name</label>
+                            <input type="text" id="ollama-model1-name" placeholder="예: llama3">
+                        </div>
+                        <div class="input-group">
+                            <label for="ollama-model1-alias">Model 1 Alias</label>
+                            <input type="text" id="ollama-model1-alias" placeholder="예: Llama 3">
+                        </div>
+                    </div>
+                    <div class="model-pair-row">
+                        <div class="input-group">
+                            <label for="ollama-model2-name">Model 2 Name</label>
+                            <input type="text" id="ollama-model2-name" placeholder="예: gemma2">
+                        </div>
+                        <div class="input-group">
+                            <label for="ollama-model2-alias">Model 2 Alias</label>
+                            <input type="text" id="ollama-model2-alias" placeholder="예: Gemma 2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upstage API Section -->
+                <div class="api-provider-section">
+                    <div class="api-section-title">Upstage API</div>
+                    <div class="input-group">
+                        <label for="upstage-api-key">API Key</label>
+                        <input type="password" id="upstage-api-key" placeholder="Upstage API Key 입력">
+                    </div>
+                    <div class="model-pair-row">
+                        <div class="input-group">
+                            <label for="upstage-model1-name">Model 1 Name</label>
+                            <input type="text" id="upstage-model1-name" placeholder="예: solar-mini">
+                        </div>
+                        <div class="input-group">
+                            <label for="upstage-model1-alias">Model 1 Alias</label>
+                            <input type="text" id="upstage-model1-alias" placeholder="예: Solar Mini">
+                        </div>
+                    </div>
+                    <div class="model-pair-row">
+                        <div class="input-group">
+                            <label for="upstage-model2-name">Model 2 Name</label>
+                            <input type="text" id="upstage-model2-name" placeholder="예: solar-pro">
+                        </div>
+                        <div class="input-group">
+                            <label for="upstage-model2-alias">Model 2 Alias</label>
+                            <input type="text" id="upstage-model2-alias" placeholder="예: Solar Pro">
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+                <button id="api-key-cancel" class="modal-btn cancel-btn">취소</button>
+                <button id="api-key-confirm" class="modal-btn confirm-btn">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 도움말 모달창 -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content" style="width: 400px; max-width: 95%;">
+            <div class="modal-header" style="background-color: #2c3e50; color: white; padding: 10px 16px; border-bottom: none;">
+                <h2 style="color: white; margin: 0; font-size: 16px;">도움말</h2>
+                <span class="modal-close" onclick="closeHelpModal()" style="color: white;">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 20px; font-family: inherit; font-size: 14px; line-height: 1.8; color: #212529; display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;">
+                <div><strong>새 파일:</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Ctrl+N</kbd></div>
+                <div><strong>파일 열기:</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Ctrl+O</kbd></div>
+                <div><strong>파일 저장:</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Ctrl+S</kbd></div>
+                <div style="background-color: #d4ffb2; font-weight: bold; padding: 2px 6px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;"><strong>인공지능의 도움을 받기 (AI 팝업):</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace; font-weight: bold; color: #212529;">Ctrl+.</kbd></div>
+
+                <div><strong>AI 단축 버튼 실행 (AI 팝업):</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Ctrl+1 ~ 7</kbd></div>
+                <div><strong>본문에 삽입 (AI 팝업):</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Ctrl+Enter</kbd></div>
+                <div><strong>전체 선택하기:</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Ctrl+A</kbd></div>
+                <div><strong>복사하기:</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Ctrl+C</kbd></div>
+                <div><strong>잘라내기:</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Ctrl+X</kbd></div>
+                <div><strong>붙여넣기:</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Ctrl+V</kbd></div>
+                <div><strong>실행취소:</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Ctrl+Z</kbd></div>
+                <div><strong>재 실행:</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Ctrl+Y</kbd></div>
+                <div><strong>글 선택하기:</strong> <kbd style="background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 12px; font-family: monospace;">Shift + 방향키</kbd></div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; padding: 12px 16px; background-color: #ffffff; border-top: 1px solid #ddd;">
+                <button class="menu-btn" style="height: 32px; background-color: #f1f3f5; color: #495057; border: 1px solid #ddd; border-radius: 4px; padding: 0 16px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="closeHelpModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./tabs.js"></script>
+    <script src="./editor.js"></script>
+    <script src="./ai-config.js"></script>
+    <script src="./ai-chat.js"></script>
+    <script src="./suggestion.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,286 @@
+/* ==========================================================================
+   tabs.css - 탭 바, 윈도우 컨트롤, 에디터 헤더, 메뉴 버튼
+   ========================================================================== */
+
+.editor-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 2px 8px;
+    background: #fdfbf7;
+    border-bottom: 1px solid #e5e5e5;
+    font-family: inherit;
+    height: 30px;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* 탭 관련 스타일 */
+.tab-bar {
+    display: flex;
+    align-items: center;
+    background: #e6f9f6;
+    border-bottom: 1px solid #fdfbf7;
+    padding: 0 0 0 8px;
+    height: 36px;
+    overflow: hidden;
+    -webkit-app-region: drag;
+    user-select: none;
+}
+
+.tabs-list {
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: 1;
+    -webkit-app-region: no-drag;
+}
+
+/* 스크롤바 숨기기 */
+.tabs-list::-webkit-scrollbar {
+    display: none;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    padding: 6px 16px;
+    height: 32px;
+    font-size: 13px;
+    color: #4a5d58;
+    cursor: pointer;
+    user-select: none;
+    max-width: 180px;
+    min-width: 100px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+    box-sizing: border-box;
+    -webkit-app-region: no-drag;
+}
+
+.tab:hover {
+    background: rgba(255, 255, 255, 0.4);
+    color: #2c3835;
+}
+
+.tab.active {
+    background: #fdfbf7;
+    color: #242424;
+    font-weight: bold;
+    height: 32px;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.04);
+}
+
+.tab-icon {
+    font-size: 13px;
+}
+
+.tab-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    text-align: left;
+}
+
+.tab-close {
+    font-size: 14px;
+    font-weight: bold;
+    color: #8a9d98;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+}
+
+.tab-close:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: #c0392b;
+}
+
+.add-tab-btn {
+    background: transparent;
+    border: none;
+    color: #4a5d58;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+    -webkit-app-region: no-drag;
+    margin-right: 8px;
+}
+
+.add-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+    color: #2c3835;
+}
+
+/* 윈도우 컨트롤 버튼 스타일 */
+.window-controls {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    -webkit-app-region: no-drag;
+}
+
+.win-btn {
+    background: transparent;
+    border: none;
+    width: 46px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a5d58;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+    outline: none;
+}
+
+.win-btn svg {
+    pointer-events: none;
+}
+
+.win-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: #2c3835;
+}
+
+.win-btn.close-btn:hover {
+    background: #e81123;
+    color: #ffffff;
+}
+
+.editor-title {
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+}
+
+.editor-menu {
+    display: flex;
+    gap: 8px;
+}
+
+.menu-btn {
+    background: transparent;
+    border: none;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+    border-radius: 4px;
+    outline: none;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+}
+
+.menu-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #000;
+}
+
+.menu-btn:active {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+/* 로고 및 드롭다운 */
+.logo-container { display: flex; align-items: center; gap: 15px; }
+.logo { color: #ffd000; font-weight: bold; font-size: 16px; letter-spacing: 0.5px; }
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background-color: transparent;
+    color: #ffd000;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    border: 1px solid rgba(255, 208, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, transform 0.1s;
+    outline: none;
+}
+
+.dropdown-btn:hover {
+    background-color: rgba(255, 208, 0, 0.1);
+    border-color: #ffd000;
+}
+
+.dropdown-btn:active {
+    transform: scale(0.97);
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 5px;
+    background-color: #1a1a1a;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+    z-index: 100;
+    border-radius: 6px;
+    border: 1px solid #333333;
+    overflow: hidden;
+    animation: fadeIn 0.15s ease-out;
+}
+
+body.light-theme .dropdown-content {
+    background-color: #ffffff;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.15);
+    border: 1px solid #dddddd;
+}
+
+.dropdown-content a {
+    color: #ffffff !important;
+    padding: 10px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    background-image: none !important;
+}
+
+body.light-theme .dropdown-content a {
+    color: #242424 !important;
+}
+
+.dropdown-content a:hover {
+    background-color: rgba(255, 208, 0, 0.15);
+    color: #ffd000 !important;
+}
+
+body.light-theme .dropdown-content a:hover {
+    background-color: rgba(0, 112, 201, 0.1);
+    color: #0070c9 !important;
+}
+
+.dropdown.show .dropdown-content,
+.dropdown-content.show {
+    display: block;
+}
+
+.btn-container { display: flex; gap: 10px; }

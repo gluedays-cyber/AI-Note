@@ -1,0 +1,106 @@
+/* ==========================================================================
+   base.css - 폰트, 테마 변수, html/body 기본 스타일, 전역 애니메이션
+   ========================================================================== */
+
+@font-face {
+    font-family: 'Noto Sans KR';
+    src: url('/fonts/NotoSansKR-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Serif KR';
+    src: url('/fonts/NotoSerifKR.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Serif SC';
+    src: url('/fonts/NotoSerifSC.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ==========================================================================
+         Theme Variables (Light Theme Fixed)
+   ========================================================================== */
+:root {
+    /* 전역 및 레이아웃 색상 */
+    --bg-color: #cdcdcd;
+    --text-color: #242424;
+    storing,b,h1,h2,h3,h4,h5,h6{color:#000000};
+    --border-color: #ddd;
+    
+    /* 컴포넌트 요소 색상 */
+    --toolbar-bg: #f0f0f0;
+    --editor-bg: #FDFBF7;
+    --editor-text: #000000;
+    --table-border-color: #525252;
+
+    /* AIWriter 전용 테마 변수 */
+    --chat-bg: #f0f0f0;
+    --ai-border: #ccc;
+
+    /* 하이퍼 링크 */
+   a {
+    color: inherit;
+    text-decoration: none;
+    background-image: linear-gradient(10deg, #04a427 0%, #ffed4a 70%);
+    background-repeat: no-repeat;
+    background-size: 100% 25%;
+    background-position: 0 88%;
+    transition: background-size 0.25s ease-in;
+   }
+   a:hover {    background-size: 100% 100%; }
+
+    /* 코드 블록 통합 고정 색상 */
+    --code-bg: #130b52;
+    --code-text: #ffffff;
+    --code-border: #000000;
+    --inline-code-bg: var(--code-bg);
+    --inline-code-text: var(--code-text);
+    --inline-code-border: var(--code-border);
+
+    /* 콜아웃 컴포넌트 색상 */
+    --callout-bg: #f8f9fa;
+    --callout-text: #ffffff;
+    --callout-border: #495057;
+    
+    --callout-tip-title: #13f140; --callout-tip-bg: #15411d; --callout-tip-border: #2b8a3e;
+    --callout-warning-title: #ff3c3c; --callout-warning-bg: #731000; --callout-warning-border: #f01c00;
+    --callout-question-title: #ff82d7; --callout-question-bg: #67165d; --callout-question-border: #c914d9;
+    --callout-important-title: #fff830; --callout-important-bg: #766906; --callout-important-border: #e7e300;
+}
+
+/* ==========================================================================
+      전체 스타일 & 좌우 레이아웃 분할
+   ========================================================================= */
+html { margin: 0; padding: 0; background: #2b2b2b; overflow: hidden; }
+body { display: flex; flex-direction: column; height: 100vh; margin: 0; font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'Gulim', '굴림', sans-serif; transition: background-color 0.3s, color 0.3s; background: var(--bg-color); color: var(--text-color); overflow: hidden; }
+.main-container { display: flex; flex-direction: row; flex: 1; height: 100vh; overflow: hidden; }
+
+/* 좌측 에디터 패널 */
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: var(--editor-bg);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
